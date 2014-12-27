@@ -25,7 +25,7 @@ CITATION: http://bl.ocks.org/mbostock/4062085
       height = 500 - margin.top - margin.bottom;
 
   var x = d3.scale.ordinal()
-      .rangeRoundBands([0, width], .1);
+      .rangeRoundBands([0, width], 0.05);
 
   var y = d3.scale.linear()
       .range([height,0]);
@@ -44,23 +44,25 @@ CITATION: http://bl.ocks.org/mbostock/4062085
     .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+  var counter = 0;
+
   d3.csv("ulysses-30.csv", type, function(error, data) {
 
     x.domain(data.map(function(d, i) {
-        if (i < 25) {
-          i++;
+        if (i > counter && i <= counter + 25) {
           return d.word;
         }
       }));
-    y.domain([0, data[0].frequency]);  //was d3.max(data, function(d) { return d.frequency; })
+
+    y.domain([0, data[counter].frequency]);  //was d3.max(data, function(d) { return d.frequency; })
 
     chart.append("g")
-      .attr("class", "x axis")
+      .attr("class", "x_axis")
       .attr("transform","translate(0," + height + ")")
       .call(xAxis);
 
     chart.append("g")
-        .attr("class", "y axis")
+        .attr("class", "y_axis")
         .attr("transform", "translate(" + width + ",0)")
         .call(yAxis)
       .append("text")
@@ -77,13 +79,64 @@ CITATION: http://bl.ocks.org/mbostock/4062085
         .attr("x", function(d) { return x(d.word); })
         .attr("y", function(d) { return y(d.frequency); })
         .attr("height", function(d) {return height - y(d.frequency); })
-        .attr("width", x.rangeBand());
+        .attr("width", x.rangeBand())
+      .append("text")
+        .attr("x", function(d) { return x(d.word); })
+        .attr("y", function(d) { return height - y(d.frequency); })
+        .attr("font-size", "20px")
+        .text(function(d) { return d.frequency; });
 
     /*bar.append("text")
         .attr("x", function(d) { return x(d.frequency) - 3; })
         .attr("y", barHeight / 2)
         .attr("dy", ".35em")
         .text(function(d) { return d.frequency; });*/
+
+
+    var arrow = 'r';
+
+    window.focus();
+    d3.select(window).on("keydown", function() {
+      switch (d3.event.keyCode) {
+        case 37: 
+          arrow = 'l';
+          if (counter > 0)
+            counter--;
+          break;
+        case 39: 
+          arrow = 'r';
+          if (counter >= 0)
+            counter++;
+          break;
+      }
+      update();
+    });
+
+    function update() {
+      
+      x.domain(data.map(function(d, i) {
+        if (i > counter && i <= counter + 25) {
+          return d.word;
+        }
+      }));
+
+      y.domain([0, data[counter].frequency]);
+
+      chart.select(".x_axis")
+        .transition().duration(1500)
+        .call(xAxis);
+
+      chart.select(".y_axis")
+        .transition().duration(1500)
+        .call(yAxis);
+
+      chart.selectAll(".bar")
+        //.transition().duration(1500)
+        .attr("x", function(d) { return x(d.word); })
+        .attr("y", function(d) { return y(d.frequency); })
+        .attr("height", function(d) {return height - y(d.frequency); })
+    }
+
   });
 
   function type(d) {
