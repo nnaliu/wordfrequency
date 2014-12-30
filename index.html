@@ -9,20 +9,51 @@ CITATION: http://bl.ocks.org/mbostock/4062085
     <title>Word Frequencies in Literature</title>
     <meta name='description' content='A visual display of the word frequencies in the most popular literary works over the centuries'/>
     <meta name='keywords' content='word, frequency, literature, linguistics, visual, infographic' />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
   </head>
 
   <body>
+    <div id="intro" style="text-align: center">
+      <h1>How Often Does ______ Appear?</h1>
+      <h4>Charts representing the word frequencies of some of the most common texts in literature.</h4>
+      <h3 id="currentBook">Book: ULYSSES</h3>
+    </div>
+    <div class="dropdown">
+      <p>Change books here. All books marked in "-30" exclude the 30 most common words in the English language.</p>
+      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu" data-toggle="dropdown" aria-expanded="true">
+        Dropdown
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('ulysses')">Ulysses</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('ulysses-30')">Ulysses-30</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('alice in wonderland')">Alice In Wonderland</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('alice in wonderland-30')">Alice In Wonderland-30</a></li>
+      </ul>
+    </div>
     <svg class="chart"></svg>
   </body>
 </html>
 
+
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
-  var margin = {top: 100, right: 80, bottom: 30, left: 40},
-      width = 960 - margin.left - margin.right,
-      height = 500 - margin.top - margin.bottom;
+  var book = "ulysses";
+
+  function getBook(name) {
+      book = name;
+      updateData();
+      document.getElementById("currentBook").innerHTML = "Book:   " + name.toUpperCase();
+  }
+
+  var margin = {top: 60, right: 100, bottom: 40, left: 90},
+      width = 890 - margin.left - margin.right,
+      height = 440 - margin.top - margin.bottom;
 
   var x = d3.scale.ordinal()
       .rangeRoundBands([0, width], 0.05);
@@ -36,7 +67,7 @@ CITATION: http://bl.ocks.org/mbostock/4062085
 
   var yAxis = d3.svg.axis()
       .scale(y)
-      .orient("right");
+      .orient("left");
 
   var chart = d3.select(".chart")
       .attr("width", width + margin.left + margin.right)
@@ -46,13 +77,11 @@ CITATION: http://bl.ocks.org/mbostock/4062085
 
   var counter = 0;
 
-  d3.csv("ulysses-30.csv", type, function(error, data) {
+  d3.csv(book + ".csv", type, function(error, data) {
 
-    x.domain(data.map(function(d, i) {
-        if (i > counter && i <= counter + 25) {
-          return d.word;
-        }
-      }));
+    x.domain(data.filter(function(d,i) {
+        return i >= counter && i < counter + 25;
+    }).map(function(d) {return d.word} ));
 
     y.domain([0, data[counter].frequency]);  //was d3.max(data, function(d) { return d.frequency; })
 
@@ -63,35 +92,35 @@ CITATION: http://bl.ocks.org/mbostock/4062085
 
     chart.append("g")
         .attr("class", "y_axis")
-        .attr("transform", "translate(" + width + ",0)")
+        .attr("transform", "translate(0,0)")
         .call(yAxis)
       .append("text")
-        .attr("transform", "rotate(90), translate(200, -70)")
+        .attr("transform", "rotate(-90), translate(-100, -70)")
         .attr("y", 6)
         .attr("dy", "1em")
         .style("text-anchor", "end")
         .text("Word Frequency");
 
     chart.selectAll(".bar")
-        .data(data)
+        .data(data.filter(function(d,i) {
+          return i >= counter && i < counter + 25;}))
       .enter().append("rect")
         .attr("class","bar")
         .attr("x", function(d) { return x(d.word); })
         .attr("y", function(d) { return y(d.frequency); })
         .attr("height", function(d) {return height - y(d.frequency); })
         .attr("width", x.rangeBand())
-      .append("text")
+      
+    /*chart.selectAll(".bar")
+        .data(data.filter(function(d,i) {
+          return i >= counter && i < counter + 25;}))
+      .enter().append("text")
+        .attr("class", "text")
         .attr("x", function(d) { return x(d.word); })
         .attr("y", function(d) { return height - y(d.frequency); })
-        .attr("font-size", "20px")
-        .text(function(d) { return d.frequency; });
+        .text("Hello");*/
 
-    /*bar.append("text")
-        .attr("x", function(d) { return x(d.frequency) - 3; })
-        .attr("y", barHeight / 2)
-        .attr("dy", ".35em")
-        .text(function(d) { return d.frequency; });*/
-
+          //function(d) { return d.frequency; });
 
     var arrow = 'r';
 
@@ -114,24 +143,24 @@ CITATION: http://bl.ocks.org/mbostock/4062085
 
     function update() {
       
-      x.domain(data.map(function(d, i) {
-        if (i > counter && i <= counter + 25) {
-          return d.word;
-        }
-      }));
+      x.domain(data.filter(function(d,i) {
+        return i >= counter && i < counter + 25;
+      }).map(function(d) {return d.word} ));
 
       y.domain([0, data[counter].frequency]);
 
       chart.select(".x_axis")
-        .transition().duration(1500)
+        .transition().duration(500)
         .call(xAxis);
 
       chart.select(".y_axis")
-        .transition().duration(1500)
+        .transition().duration(500)
         .call(yAxis);
 
       chart.selectAll(".bar")
-        //.transition().duration(1500)
+        //.transition().duration(500)
+        .data(data.filter(function(d,i) {
+          return i >= counter && i < counter + 25;}))
         .attr("x", function(d) { return x(d.word); })
         .attr("y", function(d) { return y(d.frequency); })
         .attr("height", function(d) {return height - y(d.frequency); })
@@ -142,6 +171,33 @@ CITATION: http://bl.ocks.org/mbostock/4062085
   function type(d) {
     d.value = +d.value; // coerce to number
     return d;
+  }
+
+  function updateData() {
+    d3.csv(book.replace(/\s+/g, '') + ".csv", type, function(error, data) {
+      var counter = 0;
+      x.domain(data.filter(function(d,i) {
+        return i >= counter && i < counter + 25;
+      }).map(function(d) {return d.word} ));
+
+      y.domain([0, data[counter].frequency]);
+
+      chart.select(".x_axis")
+        .transition().duration(500)
+        .call(xAxis);
+
+      chart.select(".y_axis")
+        .transition().duration(500)
+        .call(yAxis);
+
+      chart.selectAll(".bar")
+        //.transition().duration(500)
+        .data(data.filter(function(d,i) {
+          return i >= counter && i < counter + 25;}))
+        .attr("x", function(d) { return x(d.word); })
+        .attr("y", function(d) { return y(d.frequency); })
+        .attr("height", function(d) {return height - y(d.frequency); })
+    });
   }
 
 </script>

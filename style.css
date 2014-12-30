@@ -1,19 +1,14 @@
+#intro {
+  margin: 0 auto;
+  text-align: right;
+}
+
 svg {
   font: 10px sans-serif;
 }
 
-/*.chart rect {
-  fill: steelblue;
-}
-
-.chart text {
-  fill: white;
-  font: 10px sans-serif;
-  text-anchor: end;
-}*/
-
 .bar {
-  fill: red;
+  fill: gray;
 }
 
 .axis test {
@@ -30,41 +25,15 @@ svg {
   display: none;
 }
 
-/*
-.y.axis path {
-  display: none;
+.dropdown {
+	position: absolute;
+	right: 50px;
+	top: 160px;
+	max-width: 200px;
+	font-size: 10px;
+	text-align: left;
 }
 
-.y.axis line {
-  stroke: #fff;
-  stroke-opacity: .2;
-  shape-rendering: crispEdges;
-}
+h3 {
 
-.y.axis .zero line {
-  stroke: #000;
-  stroke-opacity: 1;
 }
-
-.title {
-  font: 300 78px Helvetica Neue;
-  fill: #666;
-}
-
-.birthyear,
-.age {
-  text-anchor: middle;
-}
-
-.birthyear {
-  fill: #fff;
-}
-
-rect {
-  fill-opacity: .6;
-  fill: #e377c2;
-}
-
-rect:first-child {
-  fill: #1f77b4;
-}*/
