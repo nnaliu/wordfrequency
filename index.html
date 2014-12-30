@@ -1,6 +1,4 @@
-<!-- COMMENTS HERE
-CITATION: http://bl.ocks.org/mbostock/4062085
--->
+<!-- Created by Anna Liu from December 24th through December 30th, 2014. -->
 
 <!DOCTYPE html>
 <html>
@@ -11,6 +9,7 @@ CITATION: http://bl.ocks.org/mbostock/4062085
     <meta name='keywords' content='word, frequency, literature, linguistics, visual, infographic' />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Kotta+One|Cinzel:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
@@ -19,36 +18,63 @@ CITATION: http://bl.ocks.org/mbostock/4062085
   <body>
     <div id="intro" style="text-align: center">
       <h1>How Often Does ______ Appear?</h1>
-      <h4>Charts representing the word frequencies of some of the most common texts in literature.</h4>
-      <h3 id="currentBook">Book: ULYSSES</h3>
+      <h4>Charting the word frequencies of some of the most common texts in literature.</h4>
+      <h3 id="currentBook"><italic>Book:</italic> ULYSSES</h3>
     </div>
     <div class="dropdown">
-      <p>Change books here. All books marked in "-30" exclude the 30 most common words in the English language.</p>
+      <p>See more books here:</p>
       <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu" data-toggle="dropdown" aria-expanded="true">
-        Dropdown
+        Books
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
-        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('ulysses')">Ulysses</a></li>
-        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('ulysses-30')">Ulysses-30</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('adventures of huckleberry finn')">Adventures of Huckleberry Finn</a></li>
         <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('alice in wonderland')">Alice In Wonderland</a></li>
-        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('alice in wonderland-30')">Alice In Wonderland-30</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('a modest proposal')">A Modest Proposal</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('frankenstein')">Frankenstein</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('frederickdouglass')">Narrative of the Life of Frederick Douglass</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('harrypotter1')">Harry Potter and the Sorcerer's Stone</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('jekyllhyde')">The Strange Case of Dr. Jekyll and Mr. Hyde</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('lesmiserables')">Les Misérables</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('moby dick')">Moby Dick</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('pride and prejudice')">Pride and Prejudice</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('the adventures of sherlock holmes')">The Adventures of Sherlock Holmes</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('the odyssey')">The Odyssey</a>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('ulysses')">Ulysses</a></li>
       </ul>
     </div>
+    <div id="explain">
+      <p>Use LEFT and RIGHT arrows to scroll</p>
+    </div>
+    <footer>
+      <p>Site created by <a href="https://github.com/nnaliu/">Anna Liu</a></p>
+    </footer>
     <svg class="chart"></svg>
   </body>
 </html>
 
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <script>
 
   var book = "ulysses";
+  var counter = 0;
 
   function getBook(name) {
       book = name;
+      counter = 0;
       updateData();
-      document.getElementById("currentBook").innerHTML = "Book:   " + name.toUpperCase();
+      if (name == "frederickdouglass")
+        name = "Narrative of the Life of Frederick Douglass, an American Slave";
+      else if (name == "jekyllhyde")
+        name = "The Strange Case of Dr. Jekyll and Mr. Hyde";
+      else if (name == "lesmiserables")
+        name = "Les Misérables";
+      else if (name == "harrypotter1")
+        name = "Harry Potter and the Sorcerer's Stone";
+      
+      document.getElementById("currentBook").innerHTML = "<italic>Book:</italic>   " + name.toUpperCase();
   }
 
   var margin = {top: 60, right: 100, bottom: 40, left: 90},
@@ -69,18 +95,25 @@ CITATION: http://bl.ocks.org/mbostock/4062085
       .scale(y)
       .orient("left");
 
+  var tip = d3.tip()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function(d) {
+        return "<strong><span style='color:black'>" + d.frequency + "</span></strong>";
+      })
+
   var chart = d3.select(".chart")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
     .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  var counter = 0;
+  chart.call(tip);
 
-  d3.csv(book + ".csv", type, function(error, data) {
+  d3.csv("data/" + book + ".csv", type, function(error, data) {
 
     x.domain(data.filter(function(d,i) {
-        return i >= counter && i < counter + 25;
+        return i >= counter && i < counter + 20;
     }).map(function(d) {return d.word} ));
 
     y.domain([0, data[counter].frequency]);  //was d3.max(data, function(d) { return d.frequency; })
@@ -103,24 +136,16 @@ CITATION: http://bl.ocks.org/mbostock/4062085
 
     chart.selectAll(".bar")
         .data(data.filter(function(d,i) {
-          return i >= counter && i < counter + 25;}))
+          return i >= counter && i < counter + 20;}))
       .enter().append("rect")
         .attr("class","bar")
         .attr("x", function(d) { return x(d.word); })
         .attr("y", function(d) { return y(d.frequency); })
         .attr("height", function(d) {return height - y(d.frequency); })
         .attr("width", x.rangeBand())
-      
-    /*chart.selectAll(".bar")
-        .data(data.filter(function(d,i) {
-          return i >= counter && i < counter + 25;}))
-      .enter().append("text")
-        .attr("class", "text")
-        .attr("x", function(d) { return x(d.word); })
-        .attr("y", function(d) { return height - y(d.frequency); })
-        .text("Hello");*/
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide);
 
-          //function(d) { return d.frequency; });
 
     var arrow = 'r';
 
@@ -138,13 +163,17 @@ CITATION: http://bl.ocks.org/mbostock/4062085
             counter++;
           break;
       }
-      update();
+
+      if (book == "ulysses")
+        update();
+      else
+        updateData();
     });
 
     function update() {
       
       x.domain(data.filter(function(d,i) {
-        return i >= counter && i < counter + 25;
+        return i >= counter && i < counter + 20;
       }).map(function(d) {return d.word} ));
 
       y.domain([0, data[counter].frequency]);
@@ -158,9 +187,8 @@ CITATION: http://bl.ocks.org/mbostock/4062085
         .call(yAxis);
 
       chart.selectAll(".bar")
-        //.transition().duration(500)
         .data(data.filter(function(d,i) {
-          return i >= counter && i < counter + 25;}))
+          return i >= counter && i < counter + 20;}))
         .attr("x", function(d) { return x(d.word); })
         .attr("y", function(d) { return y(d.frequency); })
         .attr("height", function(d) {return height - y(d.frequency); })
@@ -169,15 +197,14 @@ CITATION: http://bl.ocks.org/mbostock/4062085
   });
 
   function type(d) {
-    d.value = +d.value; // coerce to number
+    d.value = +d.value;
     return d;
   }
 
   function updateData() {
-    d3.csv(book.replace(/\s+/g, '') + ".csv", type, function(error, data) {
-      var counter = 0;
+    d3.csv("data/" + book.replace(/\s+/g, '') + ".csv", type, function(error, data) {
       x.domain(data.filter(function(d,i) {
-        return i >= counter && i < counter + 25;
+        return i >= counter && i < counter + 20;
       }).map(function(d) {return d.word} ));
 
       y.domain([0, data[counter].frequency]);
@@ -191,9 +218,8 @@ CITATION: http://bl.ocks.org/mbostock/4062085
         .call(yAxis);
 
       chart.selectAll(".bar")
-        //.transition().duration(500)
         .data(data.filter(function(d,i) {
-          return i >= counter && i < counter + 25;}))
+          return i >= counter && i < counter + 20;}))
         .attr("x", function(d) { return x(d.word); })
         .attr("y", function(d) { return y(d.frequency); })
         .attr("height", function(d) {return height - y(d.frequency); })
