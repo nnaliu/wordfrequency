@@ -1,0 +1,230 @@
+<!-- Created by Anna Liu from December 24th through December 30th, 2014. -->
+
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <head>
+    <title>Word Frequencies in Literature</title>
+    <meta name='description' content='A visual display of the word frequencies in the most popular literary works over the centuries'/>
+    <meta name='keywords' content='word, frequency, literature, linguistics, visual, infographic' />
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Kotta+One|Cinzel:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+  </head>
+
+  <body>
+    <div id="intro" style="text-align: center">
+      <h1>How Often Does ______ Appear?</h1>
+      <h4>Charting the word frequencies of some of the most common texts in literature.</h4>
+      <h3 id="currentBook"><italic>Book:</italic> ULYSSES</h3>
+    </div>
+    <div class="dropdown">
+      <p>See more books here:</p>
+      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu" data-toggle="dropdown" aria-expanded="true">
+        Books
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('adventures of huckleberry finn')">Adventures of Huckleberry Finn</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('alice in wonderland')">Alice In Wonderland</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('a modest proposal')">A Modest Proposal</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('frankenstein')">Frankenstein</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('frederickdouglass')">Narrative of the Life of Frederick Douglass</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('harrypotter1')">Harry Potter and the Sorcerer's Stone</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('jekyllhyde')">The Strange Case of Dr. Jekyll and Mr. Hyde</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('lesmiserables')">Les Misérables</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('moby dick')">Moby Dick</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('pride and prejudice')">Pride and Prejudice</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('the adventures of sherlock holmes')">The Adventures of Sherlock Holmes</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('the odyssey')">The Odyssey</a>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="#" onclick = "getBook('ulysses')">Ulysses</a></li>
+      </ul>
+    </div>
+    <div id="explain">
+      <p>Use LEFT and RIGHT arrows to scroll</p>
+    </div>
+    <footer>
+      <p>Site created by <a href="https://github.com/nnaliu/">Anna Liu</a></p>
+    </footer>
+    <svg class="chart"></svg>
+  </body>
+</html>
+
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+
+  var book = "ulysses";
+  var counter = 0;
+
+  function getBook(name) {
+      book = name;
+      counter = 0;
+      updateData();
+      if (name == "frederickdouglass")
+        name = "Narrative of the Life of Frederick Douglass, an American Slave";
+      else if (name == "jekyllhyde")
+        name = "The Strange Case of Dr. Jekyll and Mr. Hyde";
+      else if (name == "lesmiserables")
+        name = "Les Misérables";
+      else if (name == "harrypotter1")
+        name = "Harry Potter and the Sorcerer's Stone";
+      
+      document.getElementById("currentBook").innerHTML = "<italic>Book:</italic>   " + name.toUpperCase();
+  }
+
+  var margin = {top: 60, right: 100, bottom: 40, left: 90},
+      width = 890 - margin.left - margin.right,
+      height = 440 - margin.top - margin.bottom;
+
+  var x = d3.scale.ordinal()
+      .rangeRoundBands([0, width], 0.05);
+
+  var y = d3.scale.linear()
+      .range([height,0]);
+
+  var xAxis = d3.svg.axis()
+      .scale(x)
+      .orient("bottom");
+
+  var yAxis = d3.svg.axis()
+      .scale(y)
+      .orient("left");
+
+  var tip = d3.tip()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function(d) {
+        return "<strong><span style='color:black'>" + d.frequency + "</span></strong>";
+      })
+
+  var chart = d3.select(".chart")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  chart.call(tip);
+
+  d3.csv("data/" + book + ".csv", type, function(error, data) {
+
+    x.domain(data.filter(function(d,i) {
+        return i >= counter && i < counter + 20;
+    }).map(function(d) {return d.word} ));
+
+    y.domain([0, data[counter].frequency]);  //was d3.max(data, function(d) { return d.frequency; })
+
+    chart.append("g")
+      .attr("class", "x_axis")
+      .attr("transform","translate(0," + height + ")")
+      .call(xAxis);
+
+    chart.append("g")
+        .attr("class", "y_axis")
+        .attr("transform", "translate(0,0)")
+        .call(yAxis)
+      .append("text")
+        .attr("transform", "rotate(-90), translate(-100, -70)")
+        .attr("y", 6)
+        .attr("dy", "1em")
+        .style("text-anchor", "end")
+        .text("Word Frequency");
+
+    chart.selectAll(".bar")
+        .data(data.filter(function(d,i) {
+          return i >= counter && i < counter + 20;}))
+      .enter().append("rect")
+        .attr("class","bar")
+        .attr("x", function(d) { return x(d.word); })
+        .attr("y", function(d) { return y(d.frequency); })
+        .attr("height", function(d) {return height - y(d.frequency); })
+        .attr("width", x.rangeBand())
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide);
+
+
+    var arrow = 'r';
+
+    window.focus();
+    d3.select(window).on("keydown", function() {
+      switch (d3.event.keyCode) {
+        case 37: 
+          arrow = 'l';
+          if (counter > 0)
+            counter--;
+          break;
+        case 39: 
+          arrow = 'r';
+          if (counter >= 0)
+            counter++;
+          break;
+      }
+
+      if (book == "ulysses")
+        update();
+      else
+        updateData();
+    });
+
+    function update() {
+      
+      x.domain(data.filter(function(d,i) {
+        return i >= counter && i < counter + 20;
+      }).map(function(d) {return d.word} ));
+
+      y.domain([0, data[counter].frequency]);
+
+      chart.select(".x_axis")
+        .transition().duration(500)
+        .call(xAxis);
+
+      chart.select(".y_axis")
+        .transition().duration(500)
+        .call(yAxis);
+
+      chart.selectAll(".bar")
+        .data(data.filter(function(d,i) {
+          return i >= counter && i < counter + 20;}))
+        .attr("x", function(d) { return x(d.word); })
+        .attr("y", function(d) { return y(d.frequency); })
+        .attr("height", function(d) {return height - y(d.frequency); })
+    }
+
+  });
+
+  function type(d) {
+    d.value = +d.value;
+    return d;
+  }
+
+  function updateData() {
+    d3.csv("data/" + book.replace(/\s+/g, '') + ".csv", type, function(error, data) {
+      x.domain(data.filter(function(d,i) {
+        return i >= counter && i < counter + 20;
+      }).map(function(d) {return d.word} ));
+
+      y.domain([0, data[counter].frequency]);
+
+      chart.select(".x_axis")
+        .transition().duration(500)
+        .call(xAxis);
+
+      chart.select(".y_axis")
+        .transition().duration(500)
+        .call(yAxis);
+
+      chart.selectAll(".bar")
+        .data(data.filter(function(d,i) {
+          return i >= counter && i < counter + 20;}))
+        .attr("x", function(d) { return x(d.word); })
+        .attr("y", function(d) { return y(d.frequency); })
+        .attr("height", function(d) {return height - y(d.frequency); })
+    });
+  }
+
+</script>
